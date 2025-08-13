@@ -1,0 +1,2 @@
+// Incluyo la URL base de la API del backend
+export const API_URL = 'http://localhost:8000'; // backend FastAPI

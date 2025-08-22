@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧠 Asistente Clínico (TFM)
 
-## Getting Started
+Asistente digital clínico que:
+- Graba la consulta médica (audio).
+- Transcribe automáticamente a texto (Whisper).
+- Estructura la información en formato **SOAP** (Subjetivo, Objetivo, Evaluación, Plan).
+- Ofrece soporte preliminar al diagnóstico.
 
-First, run the development server:
+---
+
+## 📂 Estructura del proyecto
+ASISTENTE-CLINICO/
+├─ asistente_frontend/ # Next.js (React + Tailwind + ShadCN UI)
+│ ├─ src/...
+│ └─ package.json
+│
+├─ asistente-backend/ # FastAPI (Python, Whisper, spaCy)
+│ ├─ app/...
+│ └─ requirements.txt
+│
+├─ README.md # Este archivo
+└─ .gitignore
+
+
+---
+
+## ⚙️ Requisitos previos
+
+- **Node.js** ≥ 18
+- **Python** 3.10 – 3.12 (recomendado)
+- **FFmpeg** instalado en el sistema  
+  - Ubuntu/Debian: `sudo apt-get install ffmpeg`  
+  - macOS: `brew install ffmpeg`  
+  - Windows: `choco install ffmpeg`
+
+---
+
+## 🚀 Instalación y ejecución
+
+### Backend (FastAPI)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+cd asistente-backend
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+pip install -r requirements.txt
+pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+uvicorn app.main:app --reload --port 8000
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+PARA EL FRONTEND
+ cd asistente_frontend
+ npm install
+ Crear archivo .env.local: NEXT_PUBLIC_API_URL=http://localhost:8000
+ Ejecutar en desarrollo: npm run dev
+ --> Frontend en: http://localhost:3000
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+🔄 Flujo de uso
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Iniciar backend (FastAPI).
+2 Iniciar frontend (Next.js).
+3. En el navegador:
+   - Pulsar Iniciar grabación para grabar audio y transcribirlo.
+   - Editar/agregar texto en el área de texto.
+   - Pulsar Procesar informe para estructurar en formato SOAP.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+📦 Dependencias principales
 
-## Deploy on Vercel
+Frontend: Next.js, React, Tailwind, ShadCN UI.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Backend: FastAPI, Whisper (openai-whisper), spaCy (es_core_news_md), PyTorch (CPU).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+🔐 Privacidad
+
+- Los audios se procesan localmente (no se guardan por defecto).
+- Cumplimiento con RGPD: anonimizar datos y evitar persistencia salvo consentimiento expreso.

@@ -1,6 +1,8 @@
 import spacy # Tareas de NLP
+import re  # Expresiones regulares
 
 nlp = spacy.load("es_core_news_md")  # Carga del modelo de lenguaje en español
+
 
 def estructurar_texto(texto: str) -> dict: # Se espera un texto en español y devuelve un diccionario con la estructura del texto
     # Aquí se procesa un texto clínico y lo organizamos en formato SOAP:

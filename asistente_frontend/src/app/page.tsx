@@ -60,7 +60,9 @@ export default function Page() {
                 <p className="text-sm text-gray-500">Sin contenido</p>
               ) : (
                 <ul className="list-disc ml-5 space-y-1 text-gray-800">
-                  {frases.map((f, i) => <li key={i}>{f}</li>)}
+                  {frases.map((f: string, i: number) => (
+                    <li key={i}>{f}</li>
+                ))}
                 </ul>
               )}
             </article>

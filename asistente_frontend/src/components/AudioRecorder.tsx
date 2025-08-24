@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react' // 'use client' permite guardar el estado en el cliente
+import { useRef, useState } from 'react' // 'use client' permite guardar el estado en el cliente
 import { API_URL } from '@/lib/api' // Importa la URL base de la API
 
 export default function AudioRecorder({ onTranscription }: { onTranscription: (text: string) => void }) {

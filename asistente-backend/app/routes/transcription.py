@@ -1,47 +1,63 @@
-#ESTA CLASE PERMITE TRANSCRIBIR AUDIO A TEXTO
+# ESTA CLASE PERMITE TRANSCRIBIR AUDIO A TEXTO
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 import tempfile
 import os
 import whisper
+import uuid
 
 router = APIRouter()
 
-# Cargamos Whisper, modelo "small" para CPU adaptado a mi ordenador
-model = whisper.load_model("small")
+# Carga del modelo (puedes cambiar por env var WHISPER_MODEL)
+WHISPER_MODEL_NAME = os.getenv("WHISPER_MODEL", "small")
+try:
+    model = whisper.load_model(WHISPER_MODEL_NAME)
+except Exception:
+    model = whisper.load_model("base")
 
 @router.post("/transcribir")
-async def transcribir_audio(file: UploadFile = File(...)):
-    tmp_path = None  # Inicializamos la variable para el path temporal
+async def transcribir_audio(
+    file: UploadFile = File(...),
+    speaker: str | None = Form(None),
+    session_id: str | None = Form(None),
+):
+    """
+    Recibe audio (webm/opus preferente, acepta wav/mp3/ogg), guarda temporal y devuelve
+    la transcripción en español. 'speaker' y 'session_id' se aceptan para mejorar UX.
+    """
+    tmp_path = None
     try:
-        # Sufijo básico; si quieres, ajusta por content_type
         suffix = ".webm"
-        if file.filename and file.filename.lower().endswith(".wav"):
-            suffix = ".wav"
-        elif file.filename and file.filename.lower().endswith(".mp3"):
-            suffix = ".mp3"
-        elif file.filename and file.filename.lower().endswith(".ogg"):
-            suffix = ".ogg"
-    
-        # Guardamos el archivo temporalmente SIN borrar al cerrar el contexto
+        if file.filename:
+            lname = file.filename.lower()
+            if lname.endswith(".wav"): suffix = ".wav"
+            elif lname.endswith(".mp3"): suffix = ".mp3"
+            elif lname.endswith(".ogg"): suffix = ".ogg"
+
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp:
-            temp.write(await file.read()) #Leemos el archivo
-            temp.flush()  # Aseguramos que el archivo se escribe en disco
-            tmp_path = temp.name 
+            content = await file.read()
+            if not content:
+                raise HTTPException(status_code=400, detail="Archivo de audio vacío.")
+            temp.write(content)
+            temp.flush()
+            tmp_path = temp.name
 
-        # Transcribimos el audio usando Whisper. IMPORTANTE: usa ffmpeg, importante tenerlo instalado
-        result = model.transcribe(tmp_path, language="es") #Indico que el idioma que deberá detectar es español
-        texto = (result.get("text") or "").strip()  # Eliminamos espacios en blanco al inicio y al final
+        # Requiere ffmpeg instalado en el sistema
+        result = model.transcribe(tmp_path, task="transcribe", language="es")
+        texto = (result.get("text") or "").strip()
 
-        return {"transcripcion": texto}
-    
+        _speaker = (speaker or "desconocido")[:16]
+        _session = (session_id or str(uuid.uuid4()))[:36]
+
+        return {"transcripcion": texto, "speaker": _speaker, "session_id": _session}
+
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Error al transcribir el audio: {e}")
-    
+        raise HTTPException(status_code=500, detail=f"Error al transcribir el audio: {e}")
     finally:
-        # Eliminamos el archivo temporal
         if tmp_path and os.path.exists(tmp_path):
             try:
-                os.remove(tmp_path)  # Eliminamos el archivo temporal
+                os.remove(tmp_path)
             except Exception:
                 pass

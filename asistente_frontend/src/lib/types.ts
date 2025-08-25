@@ -1,3 +1,6 @@
+// Hablantes posibles en la conversación
+export type Speaker = 'medico' | 'paciente';
+
 // Estructura del informe clínico en formato SOAP
 export interface SoapSections {
   Subjetivo: string[];
